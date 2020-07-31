@@ -3,11 +3,12 @@ const celeste    = document.getElementById('celeste')
 const violeta    = document.getElementById('violeta')
 const naranja    = document.getElementById('naranja')
 const verde      = document.getElementById('verde')
-const ULTIMO_NIVEL = 1
 
 class Juego {
 
-  constructor(){
+  constructor(ultimoNivel, dificultad = 1){
+    this.ultimoNivel = ultimoNivel
+    this.dificultad = dificultad
     this.inicializar = this.inicializar.bind(this)
     this.inicializar() 
     this.genetarSecuencia()
@@ -19,6 +20,8 @@ class Juego {
     this.siguienteNivel = this.siguienteNivel.bind(this)
     this.toggleBtnEmpezar()
     this.nivel = 1
+    this.velocidad = Math.floor(1000 / this.dificultad)
+    this.velocidadColor = Math.floor(350 / this.dificultad)
     this.colores = {
       celeste,
       violeta,
@@ -37,7 +40,10 @@ class Juego {
   genetarSecuencia() {
     // .fill(0) es para rellenar de dicho valor las posiciones definidas del array
     // .map solo funciona cuando el array esta definido, por eso primero se hacel .fill
-    this.secuencia = new Array(ULTIMO_NIVEL).fill(0).map(n => Math.floor(Math.random() * 4))
+    const nuevaSecuencia = new Array(this.ultimoNivel).fill(0).map(n => Math.floor(Math.random() * 4))
+    this.secuencia = this.secuencia 
+      ? [...this.secuencia, ...nuevaSecuencia] 
+      : [...nuevaSecuencia]
   }
 
   siguienteNivel(){
@@ -75,13 +81,13 @@ class Juego {
   iluminarSecuencia(){
     for(let i = 0; i < this.nivel; i++){
       const color = this.transformarNumeroColor(this.secuencia[i])
-      setTimeout(() => this.iluminarColor(color), 1000 * i)
+      setTimeout(() => this.iluminarColor(color), this.velocidad * i) // Mover velocidad
     }
   }
 
   iluminarColor(color){
     this.colores[color].classList.add('light')
-    setTimeout(() => this.apagarColor(color), 350)
+    setTimeout(() => this.apagarColor(color), this.velocidadColor) // Mover velocidad
   }
 
   apagarColor(color){
@@ -112,11 +118,10 @@ class Juego {
       if(this.subnivel === this.nivel){
         this.nivel++
         this.eliminarEventosClick()
-        if(this.nivel === (ULTIMO_NIVEL + 1)){
-          this.ganoElJuego()
-        } else {
-          setTimeout(this.siguienteNivel, 1500)
+        if(this.nivel === this.secuencia.length){
+          this.genetarSecuencia()
         }
+        setTimeout(this.siguienteNivel, this.velocidad) // Mover velocidad
       }
     } else {
       this.perdioElJuego()
@@ -128,7 +133,7 @@ class Juego {
       .then(this.inicializar)
   }
   perdioElJuego(){
-    swal('Platzi','Lo sentimos has perdido', 'error')
+    swal('Platzi',`Lo sentimos has perdido en el nivel ${this.nivel}`, 'error')
       .then(() => {
         this.eliminarEventosClick()
         this.inicializar()
@@ -138,5 +143,5 @@ class Juego {
 
 function empezarJuego(){
   // const juego = new Juego()
-  window.juego = new Juego()
+  window.juego = new Juego(2, 3)
 }
